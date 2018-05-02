@@ -14,15 +14,15 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 title: 糯米糕
-email: your-email@example.com
+email: 760785539@qq.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  慢慢写博文
+  hello world
+  糯米糕的博客
 baseurl: "" # the subpath of your site, e.g. /blog
 url: https://jimb55.github.io/ # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  jekyll
+#twitter_username: jekyllrb
+github_username:  jimb55
 
 # Build settings
 markdown: kramdown
@@ -44,17 +44,17 @@ plugins:
 
 
 # Site Settings
-search : true
+search                   : true
 locale                   : "zh-CN"
 
 #作者信息
 author:
   name   : "Jimb55"
   avatar : "/assets/images/jimb55.png"
-  bio    : "hello world！！！"
+  bio    : "copy 熟练工"
   email  : # optional
-  uri    : "/blogs"
-  home   : # null (default), "absolute or relative url to link to author home"
+  uri    : "https://blog.csdn.net/jian1jian_/article/list/"
+  home   :  "/" # null (default), "absolute or relative url to link to author home"
 
 #paginate
 paginate: 1 # amount of posts to show

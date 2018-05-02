@@ -1,0 +1,4 @@
+#Navigation
+main:
+  - title: "博客"
+    url: /blogs/

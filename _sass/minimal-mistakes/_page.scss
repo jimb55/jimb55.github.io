@@ -7,8 +7,8 @@
   margin-left: auto;
   margin-top: 2em;
   margin-right: auto;
-  padding-left: 1em;
-  padding-right: 1em;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
   -webkit-animation: $intro-transition;
   animation: $intro-transition;
   max-width: 100%;
@@ -29,7 +29,7 @@
 
   @include breakpoint($x-large) {
     width: calc(100% - #{$right-sidebar-width});
-    padding-right: $right-sidebar-width;
+    padding-right: 0px;//$right-sidebar-width;
   }
 
   .page__inner-wrap {
@@ -75,7 +75,7 @@
   p,
   li,
   dl {
-    font-size: 1em;
+    font-size: 0.8em;
   }
 
   /* paragraph indents */
@@ -102,13 +102,13 @@
   }
 
   dt {
-    margin-top: 1em;
+    margin-top: 0.8em;
     font-family: $sans-serif;
     font-weight: bold;
   }
 
   dd {
-    margin-left: 1em;
+    margin-left: 0.8em;
     font-family: $sans-serif;
     font-size: $type-size-6;
   }
@@ -151,8 +151,8 @@
     }
 
     .wrapper {
-      padding-left: 1em;
-      padding-right: 1em;
+      padding-left: 0.8em;
+      padding-right: 0.8em;
 
       @include breakpoint($x-large) {
         max-width: $x-large;
@@ -218,7 +218,7 @@
 
 .page__share {
   margin-top: 2em;
-  padding-top: 1em;
+  padding-top: 0.8em;
   border-top: 1px solid $border-color;
 
   @include breakpoint(max-width $small) {
@@ -297,7 +297,7 @@
 
 .taxonomy__section {
   margin-bottom: 2em;
-  padding-bottom: 1em;
+  padding-bottom: 0.8em;
 
   &:not(:last-child) {
     border-bottom: solid 1px $border-color;
@@ -404,7 +404,7 @@
 
 .comment {
   @include clearfix();
-  margin: 1em 0;
+  margin: 0.8em 0;
 
   &:not(:last-child) {
     border-bottom: 1px solid $border-color;
@@ -469,7 +469,7 @@
   @include clearfix();
   float: left;
   margin-top: 2em;
-  padding-top: 1em;
+  padding-top: 0.8em;
   border-top: 1px solid $border-color;
 
   @include breakpoint($large) {

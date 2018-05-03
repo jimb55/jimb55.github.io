@@ -46,6 +46,7 @@ plugins:
 # Site Settings
 search                   : true
 locale                   : "zh-CN"
+teaser                   : /assets/images/tmp2.jpg
 
 #作者信息
 author:
@@ -57,7 +58,7 @@ author:
   home   :  "/" # null (default), "absolute or relative url to link to author home"
 
 #paginate
-paginate: 1 # amount of posts to show
+paginate: 20 # amount of posts to show
 paginate_path: /blogs/page:num/
 
 # Defaults

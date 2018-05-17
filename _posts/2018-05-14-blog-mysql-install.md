@@ -1,5 +1,5 @@
 ---
-title: 'mysql编译安装5.7'
+title: 'mysql 编译安装5.7'
 date: 2018-05-14
 tags:
   - linux
@@ -162,6 +162,8 @@ symbolic-links=0
 初始化mysql
 
 ```
+[root@localhost mysql57]# groupadd mysql
+[root@localhost mysql57]# useradd -g mysql  -r mysql
 [root@localhost mysql57]# bin/mysqld  --initialize --user=mysql --datadir=/data/mysql  --basedir=/usr/local/es/mysql57
 2018-05-15T12:03:38.914370Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
 2018-05-15T12:03:39.099197Z 0 [Warning] InnoDB: New log files created, LSN=45790
@@ -195,3 +197,48 @@ mysql> ...
 
 操作完成！
 
+## 可能出现的错误
+1 输入上面的密码时提示 `mysql: [Warning] Using a password on the command line interface can be insecure.`
+```
+# mysql -uroot -p
+Enter password：
+```
+转换成如此输入即可
+
+2 mysql client 登录时 报`ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)`
+
+```
+# find / -name mysql.sock # 看看有没有输出和路径对上了没有，没输出表示mysqld.service根本没有启动成功
+/var/lib/mysql/mysql.sock # 如我此处的路径就跟报错提示中的 /tmp/mysql.sock 不同，所以报错
+```
+
+只能修改配置文件
+
+```
+[client]
+port = 3306 
+socket = /var/lib/mysql/mysql.sock #此处修改为你find 出来的mysql.sock路径
+
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+basedir = /usr/local/es/mysql57
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+# Settings user and group are ignored when systemd is used.
+# If you need to run mysqld under a different user or group,
+# customize your systemd unit file for mariadb according to the
+# instructions in http://fedoraproject.org/wiki/Systemd
+
+[mysqld_safe]
+#log-error=/var/log/mariadb/mariadb.log
+#pid-file=/var/run/mariadb/mariadb.pid
+
+#
+# include all files from the config directory
+#
+#!includedir /etc/my.cnf.d
+
+```
+再次链接应该没问题了

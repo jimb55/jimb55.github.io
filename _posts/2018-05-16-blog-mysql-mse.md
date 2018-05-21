@@ -315,7 +315,7 @@ mysql> select * from students;
 ```
 接着做法就是导出数据库，同步数据库，slave 配置 mysql 机子，做法与上面一样。
 
-> ps 导出数据库这步不能瑞出当前 mysql 终端，退出mysql 终端后 FLUSH TABLES WITH READ LOCK; 将会失效，应新建master终端连接操作！
+> ps 导出数据库这步不能退出当前 mysql 终端，退出mysql 终端后 FLUSH TABLES WITH READ LOCK; 将会失效，应新建master终端连接操作！
 ![Image text](/assets/images/blogs/mysql-mse/ort.png)
 
 等都完成之后， 在master 端执行 
@@ -350,3 +350,4 @@ mysql> show slave status\G;
                    Last_Errno: 1062
                    Last_Error: Error 'Duplicate entry '4' for key 'PRIMARY'' on query. Default database: 'testb'. Query: 'insert into students(sname) values("long")' #失败
 ```
+所以得找对数据库和数据库对应的pos 点

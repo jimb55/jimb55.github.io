@@ -13,7 +13,16 @@ header:
 ## apache 三大模块
 Prefork MPM模式：使用多个进程，每个进程只有一个线程，每个进程在某个确定的时间只能维持一个连接，稳定，内存开销较高；
 
-![Image text](/assets/images/blogs/apache-httpd-threemod/prefork.jpg)     
+![Image text](/assets/images/blogs/apache-httpd-threemod/prefork.jpg)    
+
+处理链接队列请求，最大链接数配置
+```
+<IfModule prefork.c> 
+MaxRequestsPerChild  4000 #每个进程能处理的最大请求数；
+</IfModule>
+```
+ 
+![Image text](/assets/images/blogs/apache-httpd-threemod/prw.jpg)   
 
 Worker MPM模式：使用多个进程，每个子进程包含多个线程，每个线程在某个确定的时间只能维持一个连接，内存占用量比较小，适合大并发、高流量的WEB服务器。Worker MPM缺点是一个线程崩溃，整个进程就会连同其任何线程一起挂掉
 

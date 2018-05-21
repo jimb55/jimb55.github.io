@@ -1,6 +1,6 @@
 ---
 title: 'apache 虚拟主机和Rewrite'
-date: 2018-05-22
+date: 2018-05-19
 tags:
   - linux
   - apache
@@ -9,8 +9,6 @@ toc_label: "目录"
 header:
   teaser: /assets/images/teaser/apache.png
 ---
-
-# apache 虚拟机和Rewrite
 
 ## 虚拟主机
 
@@ -28,7 +26,7 @@ header:
  - 多个IP 对应不同主机 
  
 配置实例 ,在
-在 conf/http.conf 中打开  httpd-vhosts.conf
+在 `conf/http.conf` 中打开  `httpd-vhosts.conf`
 ```
 # Virtual hosts
 Include conf/extra/httpd-vhosts.conf #把这句的#号去掉
@@ -56,7 +54,7 @@ httpd-vhosts.conf中配置
 </VirtualHost>
 ```
 
-> ps apache 2.4 网页访问无权限
+> ps apache 2.4 网页访问无权限 问题
 
 打开`/data/logs/jimbtest_error_log` (以上面的配置例子的log 日志，可查看)
 ```
@@ -150,7 +148,7 @@ Invalid command 'RewriteEngine', perhaps misspelled or defined by a module not i
 ```
 
  - RewriteEngine on 启动重写
- - RewriteCond NC  (NC:忽略大小)匹配以jimbtest.com开头的域名
+ - RewriteCond NC  (NC:忽略大小)匹配以jimbtest.com开头的域名,RewriteCond只作用第一个下面的RewriteRule。
  - RewriteRule 执行重写 <u>(.*)</u> 表示任意字符串 $1 表示引用
  - HTTP_HOST 是 <u>**服务器变量**</u> 表示匹配服务器ServerName域名,更多的如HTTP_COOKIE,DOCUMENT_ROOT等
    服务器变量 列表: [http://httpd.apache.org/docs/2.4/expr.html#vars](http://httpd.apache.org/docs/2.4/expr.html#vars)
@@ -164,9 +162,62 @@ Invalid command 'RewriteEngine', perhaps misspelled or defined by a module not i
      - ( ) 分组, 如 (abc){2}只匹配到abcabc，但匹配不到了abc,如 (ab)+ matches ababab - that is, the + applies to the group. For more on backreferences see below.
      - [jm] 匹配字符串jm 	c[uoa]t matches cut, cot or cat.
      - [^jm] 不匹配字符串jm  matches any character not specified	c[^/]t matches cat or c=t but not c/t
-     
      详情 [http://httpd.apache.org/docs/2.4/rewrite/intro.html](http://httpd.apache.org/docs/2.4/rewrite/intro.html)
-     
-    
- - [NC] 这个是 <u>opt Flags</u>,**NC** 决定 RewriteRule 规则的匹配行为可以通过应用程序区分大小写,其他如 BNP，B等
+ - [NC] 这个是 <u>opt Flags</u>,**NC** 决定 RewriteRule 规则的匹配行为可以通过应用程序区分大小写,L(last rule) 匹配当前规则为最后一条匹配规则，停止匹配后续规则,其他如 BNP，B等
    列表 [http://httpd.apache.org/docs/2.4/rewrite/flags.html](http://httpd.apache.org/docs/2.4/rewrite/flags.html)
+   
+   
+综上所述：
+
+![Image text](/assets/images/blogs/apache-httpd-vhost/zsss1.jpg)
+
+[Directive(指令)](http://httpd.apache.org/docs/2.4/mod/mod_rewrite.html#rewriterule)
+[服务器变量](http://httpd.apache.org/docs/2.4/expr.html#vars)
+[正则](http://httpd.apache.org/docs/2.4/rewrite/intro.html)
+[flags](http://httpd.apache.org/docs/2.4/rewrite/flags.html)
+
+### 正则与参数
+
+图片从apache 官网拷贝
+
+![Image text](/assets/images/blogs/apache-httpd-vhost/rs.png)
+
+修改一下
+```
+    <VirtualHost *:80>
+        ServerAdmin xxx@gmail.com
+        DocumentRoot "/data/www/testVhost"
+        ServerName jimbtest.com
+        ErrorLog "/data/logs/jimbtest_error_log"
+        CustomLog "/data/logs/jimbtest_access_log" common
+    
+        RewriteCond %{DOCUMENT_ROOT}/$1 !-f
+        RewriteCond %{HTTP_HOST}  ^(jimbtest.com)$    [NC]
+        RewriteRule ^/?([a-z]+)/(.*)$  /admin.foo?page=$1&id=$2&host=%1  [PT]
+    
+     <Directory "/data/www/testVhost">
+      Options -Indexes +FollowSymlinks
+      AllowOverride All
+      Require all granted
+     </Directory>
+    </VirtualHost>
+```
+> ps : RewriteCond 指令定义了一个规则条件。一个或多个RewriteCond可以在一个RewriteRule指令之前。ps:不作用于第二个RewriteRule.
+ 
+ - 1 访问 `http://jimbtest.com/a/t.html`  执行 第一句 `RewriteCond`
+ - 2 `$1` 是 `a`, `!-f` 表示不存在这份文件才走下去，若 `DOCUMENT_ROOT` 中存在a文件，就是说我这里的 `/data/www/testVhost/a`是文件的话，匹配失败
+ - 3 `HTTP_HOST` 是域名， NC是不分大小写情况下匹配
+ - 4 `%1` 是 `jimbtest.com` ,`$1`是 `a`, `$2` 是 `t.html`
+ - 5 `PT` 是使 `RewriteRule`的结果(就是`/admin.foo?page=a&id=t.html&host=jimbtest.com`) 作为URL映射传回 (to be passed back through URL mapping 谷歌翻译的...),就是结果能被 `Alias, Redirect, or ScriptAlias`等**指令**处理处理
+
+#### `PT` 测试:
+如下代码，若访问 `http://jimbtest.com/pics/t1.jpg` 能正确访问到 `/data/file/image/t1.jpg`
+但若是 没有 `PT` ，即 `RewriteRule` 匹配成功，作为文件访问,即是 `http://base.jimbtest.com/image/$1.png`,
+并不会再执行 `ALias` 映射，而变成访问  `/data/file/image/$1.png`
+
+下面的能正确访问到 
+
+```
+Alias "/image/" "/data/file/image/"
+RewriteRule "/pics/(.+)\.jpg$" "/image/$1.png"  [PT]
+```

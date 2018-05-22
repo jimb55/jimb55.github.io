@@ -75,6 +75,32 @@ root      47411   3224  0 13:57 pts/0    00:00:00 grep --color=auto apache
 ```
 
 
+## apache 支持 php
+修改Apache的配置文件httpd.conf
+```
+DirectoryIndex index.html index.php #添加index.php
+
+#mime 模块加上 
+AddType  application/x-compress .Z
+AddType application/x-gzip .gz .tgz
+
+AddType application/x-httpd-php-source .phps
+AddType application/x-httpd-php .php
+
+LoadModule php5_module modules/libphp7.so
+```
+
+`libphp7.so` 怎样来的？
+**php** ./configure 预编译 时有个参数 --with-apxs2，指定 Apache 的bin/apxs,就像安装pdo_mysql扩展时需要指定mysql-config 一样
+```
+./configure --prefix=/usr/local/php7 \
+... # 其他配置
+--with-apxs2=/usr/local/apache2/bin/apxs \
+--with-mysql=/usr/local/mysql57/bin/mysql_config
+```
+成功后将在 apache module生成 libphpX.so
+
+> ps 报 is not a valid libtool object 这类型的错最好 make clean 一下!
 
 ## 可能遇到的问题
 

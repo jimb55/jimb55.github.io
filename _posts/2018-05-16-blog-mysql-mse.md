@@ -260,6 +260,8 @@ mysql> select * from students;
 ### 配置一台slave
 > 准备：一台装好mysql 的linux，一台能执行php代码的机子
 快速请求的php代码
+
+
 ```php
 <?php
 $mysql_conf = array(

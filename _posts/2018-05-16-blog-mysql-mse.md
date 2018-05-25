@@ -33,7 +33,7 @@ slave 通过异步IO 线程读取和 position 点 读取需要的binlog内容和
 ## 配置实验
 准备两台linux且安装好mysql的机子
 
-### master 服务器配置（172.16.47.134）
+### master 服务器配置(172.16.47.134)
 
 修改配置文件，开启bin-log
 ```

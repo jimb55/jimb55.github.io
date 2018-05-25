@@ -14,15 +14,8 @@ header:
 Prefork MPM模式：使用多个进程，每个进程只有一个线程，每个进程在某个确定的时间只能维持一个连接，稳定，内存开销较高；
 
 ![Image text](/assets/images/blogs/apache-httpd-threemod/prefork.jpg)    
-
-处理链接队列请求，最大链接数配置
-```
-<IfModule prefork.c> 
-MaxRequestsPerChild  4000 #每个进程能处理的最大请求数；
-</IfModule>
-```
  
-![Image text](/assets/images/blogs/apache-httpd-threemod/prw.jpg)   
+关于 prefork 的优化 [https://blog.csdn.net/huoyunshen88/article/details/34105561](https://blog.csdn.net/huoyunshen88/article/details/34105561)
 
 Worker MPM模式：使用多个进程，每个子进程包含多个线程，每个线程在某个确定的时间只能维持一个连接，内存占用量比较小，适合大并发、高流量的WEB服务器。Worker MPM缺点是一个线程崩溃，整个进程就会连同其任何线程一起挂掉
 
@@ -132,3 +125,48 @@ Server MPM:     prefork
     forked:     yes (variable process count)
 ```
 
+
+## prefork 模块指令
+
+common 指令列表  http://httpd.apache.org/docs/2.4/mod/mpm_common.html
+prefork 工作原理 http://httpd.apache.org/docs/2.4/mod/prefork.html#page-header
+
+常用指令 
+```text
+<IfModule mpm_prefork_module>
+    StartServers                      5
+    MinSpareServers                   5
+    MaxSpareServers                   10
+    ServerLimit                       5500
+    MaxClients                        5000
+    MaxRequestsPerChild               100
+</IfModule>
+```
+StartServers            apache 服务启动时**一开始**fork 出的子进程数
+MinSpareServers         允许最小的空闲进程数   
+MaxSpareServers         允许最大的空闲进程数
+ServerLimit             允许最大的进程数(可是处理请求的，可是空闲的，可是等待状态的，总数不能超过所配置数值)        
+MaxClients              最大的并发请求数
+MaxRequestsPerChild     子进程最大寿命（就是处理完目标数值的请求后，此子进程将被kill掉，然后被父进程创建新的子进程）
+
+[ab测试使用与结果意思](https://www.cnblogs.com/taiyonghai/p/5810150.html)
+
+
+## worker 模块指令
+
+```text
+<IfModule worker.c>				 
+StartServers        8				 
+MaxClients         4000				 
+MinSpareThreads     25				 
+MaxSpareThreads     75 			 
+ThreadsPerChild     75				 
+MaxRequestsPerChild  0			 
+</IfModule>
+```
+StartServers             默认启动Apache工作进程数；
+MaxClients         	     每秒支持的最大客户端并发；
+MinSpareThreads          最小空闲线程数；
+MaxSpareThreads          最小空闲线程数；
+ThreadsPerChild          每个进程启动的线程数；
+MaxRequestsPerChild      每个进程能处理的最大请求数，0表示无限制；

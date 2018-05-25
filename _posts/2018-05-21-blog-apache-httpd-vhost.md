@@ -1,6 +1,6 @@
 ---
 title: 'apache 虚拟主机和Rewrite'
-date: 2018-05-19
+date: 2018-05-21
 tags:
   - linux
   - apache
@@ -221,3 +221,115 @@ Invalid command 'RewriteEngine', perhaps misspelled or defined by a module not i
 Alias "/image/" "/data/file/image/"
 RewriteRule "/pics/(.+)\.jpg$" "/image/$1.png"  [PT]
 ```
+
+### 配置url 模式
+
+新建 index.php 文件
+```
+[root@localhost testVhost]# pwd
+/data/www/testVhost
+[root@localhost testVhost]# echo "<?php  var_dump(\$_GET);" > index.php     
+```
+
+`apache2` 的 `conf/extra/httpd-vhosts.conf` 配置
+```
+<VirtualHost *:80>
+    ServerAdmin xxx@gmail.com
+    DocumentRoot "/data/www/testVhost"
+    ServerName jimbtest.com
+    ErrorLog "/data/logs/jimbtest_error_log"
+    CustomLog "/data/logs/jimbtest_access_log" common
+
+    RewriteEngine on
+    #Alias "/image/" "/data/file/image/"
+    #RewriteCond  %{DOCUMENT_ROOT}/$1 !-f
+    #RewriteRule "/pics/(.+)\.jpg$" "/image/$1.png"  [PT]
+
+    RewriteCond %{DOCUMENT_ROOT}/$1 !-f
+    RewriteCond %{HTTP_HOST}  ^(jimbtest.com)$    [NC]
+    RewriteRule ^/(.*)/(.*)/(.*)$  /index.php?m=$1&c=$2&a=$3  [PT]
+    
+    RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+    RewriteRule (.*) /404.html
+
+ <Directory "/data/www/testVhost">
+  Options -Indexes +FollowSymlinks
+  AllowOverride All
+  Require all granted
+ </Directory>
+
+</VirtualHost>
+```
+
+访问 `http://jimbtest.com/home/index/login` , 网页中输出内容
+```text
+array(3) { ["m"]=> string(4) "home" ["c"]=> string(5) "index" ["a"]=> string(5) "login" }
+```
+
+### 配置PC 与 手机站点分离
+
+在站点新建 两个 目录
+
+```
+[root@localhost testVhost]# pwd
+/data/www/testVhost
+[root@localhost testVhost]# mkdir m pc
+[root@localhost testVhost]# echo "<?php echo 'this is mobile';" > m/index.php                                  
+[root@localhost testVhost]# echo "<?php echo 'this is computer';" > pc/index.php     
+```
+
+
+配置如下
+```text
+<VirtualHost *:80>
+    ServerAdmin xxx@gmail.com
+    DocumentRoot "/data/www/testVhost"
+    ServerName jimbtest.com
+    ErrorLog "/data/logs/jimbtest_error_log"
+    CustomLog "/data/logs/jimbtest_access_log" common
+
+    RewriteEngine on
+    RewriteCond %{HTTP_USER_AGENT} ^iPhone                                     [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} ^Android                                    [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} ^WAP                                        [NC]
+    RewriteRule ^/$  http://m.jimbtest.com%{REQUEST_FILENAME}                [L,R=301]
+    RewriteRule ^/.*$  http://pc.jimbtest.com%{REQUEST_FILENAME}             [L,R=301]
+    
+    RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+    RewriteRule (.*) /404.html
+ <Directory "/data/www/testVhost">
+  Options -Indexes +FollowSymlinks
+  AllowOverride All
+  Require all granted
+ </Directory>
+
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerAdmin xxx@gmail.com
+    DocumentRoot "/data/www/testVhost/m"
+    ServerName m.jimbtest.com
+    ErrorLog "/data/logs/jimbtest_m_error_log"
+    CustomLog "/data/logs/jimbtest_m_access_log" common
+ <Directory "/data/www/testVhost/m">
+  Options -Indexes +FollowSymlinks
+  AllowOverride All
+  Require all granted
+ </Directory>
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerAdmin xxx@gmail.com
+    DocumentRoot "/data/www/testVhost/pc"
+    ServerName pc.jimbtest.com
+    ErrorLog "/data/logs/jimbtest_pc_error_log"
+    CustomLog "/data/logs/jimbtest_pc_access_log" common
+ <Directory "/data/www/testVhost/pc">
+  Options -Indexes +FollowSymlinks
+  AllowOverride All
+  Require all granted
+ </Directory>
+</VirtualHost>
+```
+
+访问 jimbtest.com 将会根据设备自动跳转到想的的网站上(pc.jimbtest.com 或 m.jimbtest.com)

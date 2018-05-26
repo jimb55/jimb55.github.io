@@ -327,7 +327,7 @@ mysql>unlock tables;
 完成操作
 
 ### 可能遇到的问题
-使用比导入数据库对应pos 点要少得 pos 点
+1 使用比导入数据库对应pos 点要少得 pos 点
 ```
 mysql> show slave status\G;
 *************************** 1. row ***************************
@@ -353,3 +353,33 @@ mysql> show slave status\G;
                    Last_Error: Error 'Duplicate entry '4' for key 'PRIMARY'' on query. Default database: 'testb'. Query: 'insert into students(sname) values("long")' #失败
 ```
 所以得找对数据库和数据库对应的pos 点
+
+
+链接主库失败
+```text
+ Last_IO_Error: error connecting to master 'salveruser@172.16.47.134:3306' - retry-time: 60  retries: 32
+```
+
+先测试远程使用账号能链接不
+```text
+[root@localhost ~]# mysql -usalveruser -h 172.16.47.134 -p'123456'     
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 2003 (HY000): Can't connect to MySQL server on '172.16.47.134' (113)
+```
+如果链接不上，很可能是设置了防火墙，端口没开放
+
+```text
+[root@localhost ~]# firewall-cmd --list-ports
+
+[root@localhost ~]# firewall-cmd --zone=public --add-port=80/tcp --permanent
+success
+[root@localhost ~]# firewall-cmd --zone=public --add-port=3306/tcp --permanent  
+success
+[root@localhost ~]# firewall-cmd --list-ports
+
+[root@localhost ~]# firewall-cmd --reload                           
+success
+[root@localhost ~]# firewall-cmd --list-ports
+80/tcp 3306/tcp
+```
+当然也有其他问题，前提要确保你 slave机子的 mysql 终端能远程链接上master 的 mysqld服务

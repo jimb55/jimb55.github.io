@@ -1,5 +1,5 @@
 ---
-title: 'mysql 主从同步'
+title: 'mysql Replication 主从同步'
 date: 2018-05-16
 tags:
   - linux
@@ -238,9 +238,9 @@ mysql> select * from students;
 ``但问题是`` 这会给 master 的IO 线程造成性能损失，新增一台 slaver 还好，十台就得穿10次，IO压力便大的可怕，需求网络传输非常高。
 
 正确的做法是
-第一步 在master端 锁上数据库写操作并刷新脏页,然后 show master status 取得 pos 点再导出数据库
-第二步 slave端导入数据库再 change master设置主从分离.    
-第三步 解锁master写操作
+ - 第一步 在master端 锁上数据库写操作并刷新脏页,然后 show master status 取得 pos 点再导出数据库(当然mysqldump也能打印master信息)
+ - 第二步 slave端导入数据库再 change master设置主从分离.    
+ - 第三步 解锁master写操作
 
 ### 脏页
 脏页指的是在内存中没有写到磁盘的数据，可以通过 innodb_max_dirty_pages_pct 参数调整，默认是 90%。
@@ -308,6 +308,7 @@ mysql> show processlist;
 | 15 | root      | localhost         | testb | Query   |    0 | starting                     | show processlist                                  |
 | 29 | allperson | 172.16.47.1:63780 | testb | Query   |   27 | Waiting for global read lock | INSERT INTO `students` (sname) VALUES ('b9e5124') |
 +----+-----------+-------------------+-------+---------+------+------------------------------+---------------------------------------------------+
+# 这里需要注意的是我这请求时单进程的，如果是并发高的情况下，这里会越积越多
 2 rows in set (0.00 sec)
 mysql> select * from students;
 ...
@@ -316,8 +317,51 @@ mysql> select * from students;
 | 8318 | b9e5124 |
 ```
 接着做法就是导出数据库，同步数据库，slave 配置 mysql 机子，做法与上面一样。
+> ps 其实mysqldump 也能打印master 文件名和pos 点，这样不但准确而且方便 只需要加上  --master-data
+
+```text
+[root@localhost bf]# /usr/local/es/mysql57/bin/mysqldump --master-data  --databases testb > testb.m  -uroot -p'_Jimb55!'
+[root@localhost bf]# cat testb.m | head -n30
+-- MySQL dump 10.13  Distrib 5.7.22, for Linux (x86_64)
+--
+-- Host: localhost    Database: testb
+-- ------------------------------------------------------
+-- Server version       5.7.22-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Position to start replication or point-in-time recovery from
+--
+
+CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.000014', MASTER_LOG_POS=37132;   #看这里 已经有sql 写入
+```
+> --master-data=1 是输出，=2 是以注释形式输出
+
+打开mysql 终端
+```text
+mysql> change master to  master_host='172.16.47.134',master_user='salveruser',master_password='123456';
+Query OK, 0 rows affected, 2 warnings (0.02 sec)
+mysql> source testb.m
+mysql> start slave;
+mysql> show slave status\G;
+...
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+```
+
 
 > ps 导出数据库这步不能退出当前 mysql 终端，退出mysql 终端后 FLUSH TABLES WITH READ LOCK; 将会失效，应新建master终端连接操作！
+
 ![Image text](/assets/images/blogs/mysql-mse/ort.png)
 
 等都完成之后， 在master 端执行 
@@ -327,7 +371,7 @@ mysql>unlock tables;
 完成操作
 
 ### 可能遇到的问题
-1 使用比导入数据库对应pos 点要少得 pos 点
+#### 1 使用比导入数据库对应pos 点要少得 pos 点
 ```
 mysql> show slave status\G;
 *************************** 1. row ***************************
@@ -355,7 +399,7 @@ mysql> show slave status\G;
 所以得找对数据库和数据库对应的pos 点
 
 
-链接主库失败
+#### 2 链接主库失败
 ```text
  Last_IO_Error: error connecting to master 'salveruser@172.16.47.134:3306' - retry-time: 60  retries: 32
 ```

@@ -409,3 +409,147 @@ mysql-bin.000008
 #mysql -uroot -p'_Jimb55!'
 mysql> start slave;
 ```
+
+
+
+## data文件夹新添加slave
+当使用拷贝整个旧slave data文件夹 来作为新添加slave的库时
+材料 master slave2（旧）  slave3（新）
+
+首先，停掉服务（必须的，保证同步过程不出现数据更改）
+slave2（旧） 操作
+```text
+[root@localhost lib]# service mysql stop
+[root@localhost lib]# pwd
+/var/lib
+[root@localhost lib]# tar -zcvf mysql.tar mysql
+[root@localhost lib]# service mysql start
+```
+slave3（新） 操作
+```text
+[root@localhost lib]# pwd
+/var/lib
+[root@localhost lib]# scp  root@172.16.47.140:/var/lib/mysql.tar  mysql.tar
+[root@localhost lib]# tar -zxvf mysql.tar 
+[root@localhost lib]# vi /etc/my.cnf
+# 修改 my.cnf 
+servier_id = 3;
+
+[root@localhost lib]# service mysql start
+[root@localhost lib]# mysql -uroot -p'_Jimb55!'
+mysql> show slave status;
+```
+发现一切正常
+
+但当打开 slave2 时发现
+报了如下的错
+```text
+  Last_IO_Errno: 1236
+  Last_IO_Error: Got fatal error 1236 from master when reading data from binary log: 'A slave with the same server_uuid/server_id as this slave has connected to the master; the first event 'mysql-bin.000016' at 154, the last event read from './mysql-bin.000016' at 123, the last byte read from './mysql-bin.000016' at 154.'
+```
+重启一下 `stop slave` ， `start slave `发现又正常了，结果看了下slave3（新）的
+```text
+  Last_IO_Errno: 1236
+  Last_IO_Error: Got fatal error 1236 from master when reading data from binary log: 'A slave with the same server_uuid/server_id as this slave has connected to the master; the first event 'mysql-bin.000016' at 154, the last event read from './mysql-bin.000016' at 123, the last byte read from './mysql-bin.000016' at 154.'
+```
+报的错跟上面的一模一样
+
+到master 上看了下错误日志
+```text
+2018-06-01T14:11:07.161773Z 9 [Note] Start binlog_dump to master_thread_id(9) slave_server(3), pos(mysql-bin.000015, 930)
+2018-06-01T14:13:30.001582Z 7 [Note] Slave for channel '': received end packet from server due to dump thread being killed on master. Dump threads are killed for example during master shutdown, explicitly by a user, or when the master receives a binlog send request from a duplicate server UUID <95e423d0-5858-11e8-a7e9-000c29920633> : Error 
+2018-06-01T14:13:30.001714Z 7 [Note] Slave I/O thread: Failed reading log event, reconnecting to retry, log 'mysql-bin.000001' at position 2393 for channel ''
+2018-06-01T14:13:30.001841Z 7 [Warning] Storing MySQL user name or password information in the master info repository is not secure and is therefore not recommended. Please consider using the USER and PASSWORD connection options for START SLAVE; see the 'START SLAVE Syntax' in the MySQL Manual for more information.
+2018-06-01T14:13:30.018831Z 7 [ERROR] Slave I/O for channel '': error reconnecting to master 'salveruser@172.16.47.140:3306' - retry-time: 60  retries: 1, Error_code: 2003
+2018-06-01T14:13:38.490274Z 11 [Note] While initializing dump thread for slave with UUID <c2e1598d-5981-11e8-a10c-000c2986eda0>, found a zombie dump thread with the same UUID. Master is killing the zombie dump thread(9).
+2018-06-01T14:13:38.490421Z 11 [Note] Start binlog_dump to master_thread_id(11) slave_server(2), pos(mysql-bin.000015, 2482)
+2018-06-01T14:14:30.075264Z 7 [Note] Slave for channel '': connected to master 'salveruser@172.16.47.140:3306',replication resumed in log 'mysql-bin.000001' at position 2393
+2018-06-01T14:54:34.659545Z 12 [Note] While initializing dump thread for slave with UUID <c2e1598d-5981-11e8-a10c-000c2986eda0>, found a zombie dump thread with the same UUID. Master is killing the zombie dump thread(11).
+2018-06-01T14:54:34.660290Z 12 [Note] Start binlog_dump to master_thread_id(12) slave_server(3), pos(mysql-bin.000016, 154)
+2018-06-01T14:56:41.879315Z 14 [Note] While initializing dump thread for slave with UUID <c2e1598d-5981-11e8-a10c-000c2986eda0>, found a zombie dump thread with the same UUID. Master is killing the zombie dump thread(12).
+2018-06-01T14:56:41.879408Z 14 [Note] Start binlog_dump to master_thread_id(14) slave_server(2), pos(mysql-bin.000016, 154)
+2018-06-01T15:01:28.370304Z 0 [Note] InnoDB: page_cleaner: 1000ms intended loop took 5383ms. The settings might not be optimal. (flushed=0 and evicted=0, during the time.)
+
+
+mysql> SHOW SLAVE HOSTS;
++-----------+---------------+------+-----------+--------------------------------------+
+| Server_id | Host          | Port | Master_id | Slave_UUID                           |
++-----------+---------------+------+-----------+--------------------------------------+
+|         2 | 172.16.47.136 | 3306 |         1 | c2e1598d-5981-11e8-a10c-000c2986eda0 |
++-----------+---------------+------+-----------+--------------------------------------+
+1 row in set (0.00 sec)
+```
+发现只有一台机子有效
+
+
+```text
+slave 3
+mysql> show variables like '%server%id%';
++----------------+--------------------------------------+
+| Variable_name  | Value                                |
++----------------+--------------------------------------+
+| server_id      | 3                                    |
+| server_id_bits | 32                                   |
+| server_uuid    | c2e1598d-5981-11e8-a10c-000c2986eda0 |
++----------------+--------------------------------------+
+
+slave 2
+mysql> show variables like '%server%id%';
++----------------+--------------------------------------+
+| Variable_name  | Value                                |
++----------------+--------------------------------------+
+| server_id      | 2                                    |
+| server_id_bits | 32                                   |
+| server_uuid    | c2e1598d-5981-11e8-a10c-000c2986eda0 |
++----------------+--------------------------------------+
+```
+发现 其 uuid 居然相同，估计是 data 某份文件记录相同，导致拷贝过来发生冲突了，到网上一查，果真如此
+[slave have equal MySQL server UUIDs](https://yq.aliyun.com/ziliao/22664)
+[双slave的server_uuid相同问题](https://blog.csdn.net/dba_waterbin/article/details/27533869)
+
+slave3（新） 操作
+```text
+[root@localhost mysql]# mv auto.cnf auto.cnf.bf
+[root@localhost mysql]# service mysql restart   
+Redirecting to /bin/systemctl restart mysql.service
+```
+
+> auto.cnf 就是用来记录 
+
+master 操作 server UUID 的
+```text
+mysql> SHOW SLAVE HOSTS;
++-----------+---------------+------+-----------+--------------------------------------+
+| Server_id | Host          | Port | Master_id | Slave_UUID                           |
++-----------+---------------+------+-----------+--------------------------------------+
+|         3 | 172.16.47.132 | 3306 |         1 | 2aa3ee59-656f-11e8-a977-000c2991d93f |
+|         2 | 172.16.47.136 | 3306 |         1 | c2e1598d-5981-11e8-a10c-000c2986eda0 |
++-----------+---------------+------+-----------+--------------------------------------+
+2 rows in set (0.00 sec)
+```
+
+### 便捷操作
+```text
+# slave2
+[root@localhost lib]# service mysql stop
+[root@localhost lib]# pwd
+/var/lib
+[root@localhost lib]# tar -zcvf mysql.tar mysql
+[root@localhost lib]# service mysql start
+
+
+# slave3
+[root@localhost lib]# pwd
+/var/lib
+[root@localhost lib]# scp  root@172.16.47.140:/var/lib/mysql.tar  mysql.tar
+[root@localhost lib]# tar -zxvf mysql.tar 
+[root@localhost lib]# vi /etc/my.cnf
+# 修改 my.cnf 
+servier_id = 3;
+[root@localhost lib]# cd mysql
+[root@localhost mysql]# mv auto.cnf auto.cnf.bf
+[root@localhost lib]# service mysql start
+[root@localhost lib]# mysql -uroot -p'_Jimb55!'
+mysql> start slave;
+
+```

@@ -229,3 +229,26 @@ mysql> SHOW SLAVE HOSTS;
 +-----------+---------------+------+-----------+--------------------------------------+
 2 rows in set (0.00 sec)
 ```
+
+
+## 删除用户
+明明删除了用户，但添加用户时却还是报错
+```text
+ERROR 1396 (HY000): Operation CREATE USER failed for 'root'@'%'
+```
+应该为这样删除
+```text
+drop user 'root'@'%'; 
+flush privileges; 
+```
+
+## mysql_safe 添加用户失败
+
+```text
+mysql> CREATE USER 'root'@'%' IDENTIFIED BY '123456';
+ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement
+```
+应先执行
+```text
+flush privileges; 
+```

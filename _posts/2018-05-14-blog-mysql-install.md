@@ -242,3 +242,43 @@ symbolic-links=0
 
 ```
 再次链接应该没问题了
+
+
+## mysql55 编译安装
+```text
+#wget http://down1.chinaunix.net/distfiles/mysql-5.5.20.tar.gz
+#tar -zxvf mysql-5.5.20.tar.gz
+#cd mysql-5.5.20
+#yum install -y gcc c ncurses-devel cmake libaio bison gcc-c++  git   ncurses 
+#cmake  .  -DCMAKE_INSTALL_PREFIX=/usr/local/mysql55/ \
+-DMYSQL_UNIX_ADDR=/tmp/mysql.sock \
+-DMYSQL_DATADIR=/data/mysql \
+-DSYSCONFDIR=/etc \
+-DMYSQL_USER=mysql \
+-DMYSQL_TCP_PORT=3306 \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_MYISAM_STORAGE_ENGINE=1 \
+-DWITH_READLINE=1 \
+-DENABLED_LOCAL_INFILE=1 \
+-DWITH_EXTRA_CHARSETS=1 \
+-DDEFAULT_CHARSET=utf8 \
+-DDEFAULT_COLLATION=utf8_general_ci \
+-DEXTRA_CHARSETS=all \
+-DWITH_BIG_TABLES=1 \
+-DWITH_DEBUG=0
+#make &&make install
+
+#cd /usr/local/mysql55/ 
+#cp  -f  support-files/my-large.cnf /etc/my.cnf
+#cp  -f support-files/mysql.server /etc/init.d/mysqld 
+#chkconfig --add mysqld 
+#chkconfig --level 35 mysqld on
+#mkdir -p  /data/mysql
+#useradd  mysql
+#/usr/local/mysql55/scripts/mysql_install_db  --user=mysql --datadir=/data/mysql/ --basedir=/usr/local/mysql55/ 
+#ln  -s  /usr/local/mysql55/bin/mysql /usr/bin/mysql
+#service  mysqld  restart
+#mysql -uroot -p'new-password'
+mysql> update mysql.user set password=password("_Jimb55!") where user="root";
+mysql> flush privileges;
+```

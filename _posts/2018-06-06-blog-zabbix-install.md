@@ -3,14 +3,16 @@ title: 'zabbix 安装'
 date: 2018-06-06
 tags:
   - linux
-  - mysql
+  - zabbix
 toc: true
 toc_label: "目录"
 header:
-  teaser: /assets/images/blogs/mysql-install/mysql-install.png
+  teaser: /assets/images/teaser/zabbix.png
 ---
 
 ## zabbix 3.2 server安装
+
+基于WEB界面的提供分布式系统监视以及网络监视功能的企业级的开源解决方案。
 
 ### 安装mysql
 

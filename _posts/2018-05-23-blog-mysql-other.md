@@ -1,5 +1,5 @@
 ---
-title: 'mysql 知识汇总'
+title: 'mysql 知识或问题汇总'
 date: 2018-05-23
 tags:
   - linux

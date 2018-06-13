@@ -252,3 +252,23 @@ ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables opt
 ```text
 flush privileges; 
 ```
+
+
+## 关于mysql终端链接mysql.server问题
+
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (13)
+
+Mysql有两种连接方式： 
+（1），TCP/IP 
+（2），socket 
+对mysql.sock来说，其作用是程序与mysqlserver处于同一台机器，发起本地连接时可用。 
+例如你无须定义连接host的具体IP地址，只要为空或localhost就可以。 
+在此种情况下，即使你改变mysql的外部port也是一样可能正常连接。 
+因为你在my.ini中或my.cnf中改变端口后，mysql.sock是随每一次 mysql server启动生成的。已经根据你在更改完my.cnf后重启mysql时重新生成了一次，信息已跟着变更。 
+
+那么对于外部连接，必须是要变更port才能连接的。 
+
+~~ 外部链接（-h IP）走 port，本地链接（-h localhost,没有-h 默认localhost）走mysql.sock
+
+[参考资料](https://www.cnblogs.com/mrwang1101/p/4887842.html)
+

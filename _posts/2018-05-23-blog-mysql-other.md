@@ -270,5 +270,7 @@ Mysql有两种连接方式：
 
 ~~ 外部链接（-h IP）走 port，本地链接（-h localhost,没有-h 默认localhost）走mysql.sock
 
+>ps : The default location for the Unix socket file that the server uses for communication with local clients is /tmp/mysql.sock. （官方原文）[How to Protect or Change the MySQL Unix Socket File](https://dev.mysql.com/doc/refman/5.7/en/problems-with-mysql-sock.html)
+
 [参考资料](https://www.cnblogs.com/mrwang1101/p/4887842.html)
 

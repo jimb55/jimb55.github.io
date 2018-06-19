@@ -96,3 +96,14 @@ ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/lib
 
 [mysql终端链接问题](/2018/06/08/blog-mysql-other.html#关于mysql终端链接mysql.server问题)
 [参考资料](https://www.cnblogs.com/mrwang1101/p/4887842.html)
+
+## 导入模板（template）
+模板来自 [https://github.com/thecamels/zabbix](https://github.com/thecamels/zabbix)
+
+![Image text](/assets/images/blogs/zabbix-other/otem1.png)
+
+![Image text](/assets/images/blogs/zabbix-other/otem2.png)
+
+![Image text](/assets/images/blogs/zabbix-other/otem3.png)
+
+![Image text](/assets/images/blogs/zabbix-other/otem4.png)

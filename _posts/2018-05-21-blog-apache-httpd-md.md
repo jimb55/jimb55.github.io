@@ -12,9 +12,20 @@ header:
 
 模块展开为指令列表
 
+[官方 指令索引](http://httpd.apache.org/docs/2.4/mod/directives.html)
+
 ## core
 Core Apache HTTP Server features that are always available
 apache 的核心模块
+
+### Header
+```text
+<VirtualHost *:80>
+   Header set Set-Cookie 'time=jjj'   
+   # 设置cookie
+<VirtualHost *:80>
+```
+[header](http://httpd.apache.org/docs/2.4/mod/mod_headers.html#header)
 
 ### AcceptFilter 
 

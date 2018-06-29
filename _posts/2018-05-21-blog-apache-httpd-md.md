@@ -18,6 +18,9 @@ header:
 Core Apache HTTP Server features that are always available
 apache 的核心模块
 
+## mod_headers
+自定义 http的  request 和 response headers
+
 ### Header
 ```text
 <VirtualHost *:80>

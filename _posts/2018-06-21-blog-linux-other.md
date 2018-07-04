@@ -40,3 +40,51 @@ echo "kai ji qi dong " > /tmp/rc.local
 ```text
 /usr/bin/vmhgfs-fuse .host:/ /mnt/hgfs/ -o subtype=vmhgfs-fuse,allow_other
 ```
+
+
+## ab 测试出现 Too many open files
+
+Benchmarking 172.16.47.144 (be patient)
+socket: Too many open files (24)
+
+```text
+[root@intest ng]# ab -n 2000 -c 2000 http://172.16.47.144/
+This is ApacheBench, Version 2.3 <$Revision: 1430300 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking 172.16.47.144 (be patient)
+socket: Too many open files (24)
+```
+
+把 ulimit -n 调大
+
+```text
+[root@intest ng]# ulimit -a
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 5890
+max locked memory       (kbytes, -l) 64
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 1024 **这个数目**
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 5890
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+
+[root@intest ng]# ulimit -n 204800
+```
+
+> ps 注意是 测试机（就是使用ab 发送请求的测试使用机子） 和 被测试机子（就是安装 nginx、apache 等的机子） 都需要 **open files** 设置 就是 **ulimit -n 204800**
+
+可以使用 以下命令监听 进程打开的文件数 **14894** 是进程 **pid**
+```
+watch -n1 -d "lsof  -p 14894| wc -l"
+```
+

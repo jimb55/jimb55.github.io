@@ -33,3 +33,10 @@ echo "kai ji qi dong " > /tmp/rc.local
 ```
 
 注意需要执行 **Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure** 来启动开机启动脚本shell
+
+## VMware centos 共享文件夹
+[VMware centos 共享文件夹](https://blog.csdn.net/qq_34129637/article/details/78949662)
+
+```text
+/usr/bin/vmhgfs-fuse .host:/ /mnt/hgfs/ -o subtype=vmhgfs-fuse,allow_other
+```

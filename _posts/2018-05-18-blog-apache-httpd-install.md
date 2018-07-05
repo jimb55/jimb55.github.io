@@ -12,6 +12,8 @@ header:
 
 # apache 编译安装
 
+[apache 自动安装shell](https://github.com/jimb55/Exper/blob/master/linux/apache/apache.sh)
+
 ## apache 下载
 apache 官网 打开 project 栏目，找到 httpd（或Apache HTTP Server）
 或者快捷链接 [apache server download](http://httpd.apache.org/download.cgi)

@@ -88,3 +88,18 @@ file locks                      (-x) unlimited
 watch -n1 -d "lsof  -p 14894| wc -l"
 ```
 
+## 注意软件的删除
+```text
+[root@localhost cgi-bin]# ls -al
+总用量 16
+drwxr-xr-x.  2 root root   93 7月   5 15:11 .
+drwxr-xr-x. 15 root root  175 7月   5 13:40 ..
+lrwxrwxrwx.  1 root root   16 7月   5 15:11 php-cgi -> /usr/bin/php-cgi
+-rw-r--r--.  1 root   40  820 12月 18 2012 printenv
+-rw-r--r--.  1 root   40 1074 12月 18 2012 printenv.vbs
+-rw-r--r--.  1 root   40 1133 12月 18 2012 printenv.wsf
+-rw-r--r--.  1 root   40 1261 12月 18 2012 test-cgi
+[root@localhost cgi-bin]# rm -rf php-cgi  # 注意，这是是等于删除/usr/bin/php-cgi （源文件） 十分危险
+
+[root@localhost cgi-bin]# rm -rf ./php-cgi # 这个才是把软连删了 而不是源文件
+```
